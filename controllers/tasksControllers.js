@@ -1,7 +1,24 @@
 const tasks = require('../models/tasksModels');
 
 const getTasks = (req, res) => {
-    res.json(tasks);
+    const { priority, completed, createdAt } = req.query;
+    let filteredTasks = tasks;
+    if (priority) {
+        filteredTasks = filteredTasks.filter(task => task.priority === priority);
+    }
+    if (completed) {
+        filteredTasks = filteredTasks.filter(task => task.completed === completed);
+    }
+    if (createdAt) {
+        filteredTasks = filteredTasks.filter(task => task.createdAt <= createdAt);
+    }
+    res.json(filteredTasks);
+};
+
+const getTasksByPriority = (req, res) => {
+    const { priority } = req.params;
+    const filteredTasks = tasks.filter(task => task.priority === priority);
+    res.json(filteredTasks);
 };
 
 const getTaskById = (req, res) => {
@@ -14,6 +31,9 @@ const getTaskById = (req, res) => {
 
 const createTask = (req, res) => {
     const { title, description, completed } = req.body;
+    if (!title || !description || completed === undefined) {
+        return res.status(400).json({ message: 'Missing required fields: title, description, and completed are required' });
+    }
     if (typeof title !== 'string' || typeof description !== 'string' || typeof completed !== 'boolean') {
         return res.status(400).json({ message: 'Invalid data types: title and description must be strings, completed must be a boolean' });
     }
@@ -35,6 +55,9 @@ const updateTask = (req, res) => {
     }
 
     const { title, description, completed } = req.body;    
+    if (!title || !description || completed === undefined) {
+        return res.status(400).json({ message: 'Missing required fields: title, description, and completed are required' });
+    }
     if (typeof title !== 'string' || typeof description !== 'string' || typeof completed !== 'boolean') {
         return res.status(400).json({ message: 'Invalid data types: title and description must be strings, completed must be a boolean' });
     }
@@ -56,6 +79,7 @@ const deleteTask = (req, res) => {
 
 module.exports = {
     getTasks,
+    getTasksByPriority,
     getTaskById,
     createTask,
     updateTask,
